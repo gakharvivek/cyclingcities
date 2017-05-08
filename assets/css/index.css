@@ -1,0 +1,66 @@
+
+@media (max-width: 580px) {
+  .film_roll_wrapper img {
+    margin: 0;
+    box-shadow: none;
+  }
+}
+
+.film_roll_container {
+  position: relative;
+}
+.film_roll_pager a, a.film_roll_prev, a.film_roll_next {
+  -webkit-box-sizing: content-box;
+ font-size:200px; background:none!important; border:0px!important;
+}
+ a.film_roll_prev{background:url(../images/large_revious.png) no-repeat left top!important;}
+.film_roll_pager{display:none;}
+#film_roll_2 .film_roll_shuttle {
+  top:10px;
+}
+#film_roll_2 .film_roll_child {
+  -webkit-transition: all 1s ease;
+  transition: all 1s ease;
+  top: 0;
+}
+#film_roll_2 .moving_right .film_roll_child {
+  transform: skew(2deg, 0) translate(-3px,0);
+  -ms-transform: skew(2deg, 0) translate(-3px,0);
+  -webkit-transform: skew(2deg, 0) translate(-3px,0);
+}
+#film_roll_2 .moving_left .film_roll_child {
+  transform: skew(-2deg, 0) translate(3px,0);
+  -ms-transform: skew(-2deg, 0) translate(3px,0);
+  -webkit-transform: skew(-2deg, 0) translate(3px,0);
+}
+#film_roll_2 .film_roll_child.active {
+  top: -10px;
+}
+#film_roll_2_left {
+  position: absolute;
+  left: 15px;
+  top: 38%;
+}
+#film_roll_2_right {
+  position: absolute;
+  right: 15px;
+  top: 38%;
+}
+
+@media (max-width: 979px) {
+  body {
+    padding-top: 0px;
+  }
+  .navbar-fixed-top {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-unit {
+    margin-left: -20px;
+    margin-right: -20px;
+  }
+}
+
+a.yellow { color: yellow; }

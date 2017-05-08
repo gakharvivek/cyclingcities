@@ -1,0 +1,972 @@
+<?php
+class user_fm extends CI_Model
+{
+	function adduser()
+	{
+		$username = $_POST['email'];
+		$registeremail = $_POST['email'];
+		$fname = $_POST['fname'];
+		$lname = $_POST['lname'];
+		$password = $_POST['password'];
+		$currentdate=date("Y-m-d H:i:s");
+		$countryid = $_POST['countryid'];
+		$stateid = $_POST['stateid'];
+		$cityid = $_POST['cityid'];
+		
+			$this->db->where('username', $username);
+			$Q = $this->db->get('users_front');
+
+			if ($Q->num_rows() > 0)
+			{
+				return 0;
+			} 
+			else
+			{
+				
+				$datainsert = array(
+					'firstname' => $fname,
+					'lastname' => $lname,
+					'email' => $registeremail,
+					'password' => $this->hash($password),
+					'country' => $countryid,
+					'state' => $stateid,
+					'city' => $cityid,
+					'created' => $currentdate,
+					'username' => $username,
+					'activated' => 0
+			  );
+				
+			  $this->db->insert('users_front', $datainsert);
+			  $RegistrationsId=$this->db->insert_id();
+			  return $RegistrationsId;
+			}
+	
+	}
+	function sendconfirmationmail($id)
+	{
+		$Q = $this->db->query('SELECT * FROM tbl_registration where userid="'.$id.'"');
+		if ($Q->num_rows() > 0)
+		{
+			foreach ($Q->result_array() as $row)
+			{
+				$userid = md5($row['userid']);
+				$FirstName = $row['fname'];
+				$LastName = $row['lname'];
+				$eMail = $row['email'];
+			}
+		}
+
+		//echo $uuid;
+		$Q->free_result(); 
+		$fname=ucfirst($FirstName);
+		$lname=ucfirst($LastName);
+		$address = $eMail;
+		$from = $this->config->item('fromemailid');
+		
+		$subject = "Email Verification";
+		$message = "<table cellpadding='0' cellspacing='0' width='598px'>
+				<tr>
+				<td>
+				<img src='".site_url('assets/images/emailtop.jpg')."'>
+				</td>
+				</tr>
+				<tr>
+				<td style='border-left:1px #b2b2b2 solid; border-right:1px #b2b2b2 solid;'>
+				<table cellpadding='5' cellspacing='0' width='596' align='center' style='font-family: Arial'>
+				<tr><td>&nbsp;</td></tr>
+			
+				
+				<tr>
+				<td style='padding:0px 20px 10px;'>
+				 <span></span>
+				 Dear $fname $lname,
+				</td>
+				</tr>
+				<tr>
+				<td style='padding:0px 20px 10px;'>
+				<span>Thank you for registering with Campus For Sure. Please click on the following link to complete the email verification process</span><br/>
+				
+				</td>
+				</tr>
+				<tr><td style=' padding:0px 20px;'><span style='font-size:13px;'><a href='".site_url('user/EmailVerification')."/".$userid."' target='_blank'>".site_url('user/EmailVerification')."/".$userid."</a></span></td></tr>
+				<tr>
+				<td>
+				&nbsp;</td>
+				</tr>
+				<tr>
+				<td align='left' style='padding:0px 20px; font-size:15px;'>
+				Best regards,<br>
+				Campus For Sure Team.</td>
+				</tr>
+				<tr><td>&nbsp;</td></tr>
+				</table>
+				</td>
+				</tr>
+				<tr>
+				<td>
+				<img src='".site_url('assets/images/emailbtm.jpg')."'>
+				</td>
+				</tr>
+				</table>";
+
+		//echo $message;
+		//exit();
+
+		$config = array(
+				'mailtype' => 'html',
+				'charset' => 'utf-8',
+				'smtp_host'=>'localhost',
+				'smtp_port'=>'25',
+				'wordwrap' => TRUE
+			);
+
+
+			$this->load->library('email',$config);
+			$this->email->from($from);
+			$this->email->to($address); 
+			$this->email->subject($subject);
+			$this->email->message($message);    
+
+			if($this->email->send())
+			{
+				echo '';
+			} 
+			else
+			{
+				
+			}
+	}
+
+	function registermail($u,$password)
+	{      
+		$user= $this->getUserData($u);
+		
+		if(count($user)>0)
+		{
+			$fname=ucfirst($user[0]["fname"]);
+			$lname=ucfirst($user[0]["lname"]);
+			$username = $user[0]['email'];
+			//$password = $user[0]['password'];
+			$address = $user[0]['email'];
+
+			$from = $this->config->item('fromemailid');
+			$subject = "Account Information.";
+			$message = "<table cellpadding='0' cellspacing='0' border='' width='600px'>
+			            
+						<tr>
+						<td style='border:1px solid #0194E2; border-bottom:none;'>
+							<img src='".site_url('assets/images/emailtop.jpg')."'>
+						</td>
+						</tr>
+
+						<tr>
+							<td style='border-left:1px solid #0194E2; border-right:1px solid #0194E2; min-height:500px;'>
+								<table cellpadding='0' cellspacing='0' border=0 width='598px' align='center' style= 'font-family:Arial, Helvetica, sans-serif; font-size:14px;'>
+									<tr align=left>
+										<td>
+											<table cellpadding='0' cellspacing='0' border=0 width='598px' style= 'font-family:Arial, Helvetica, sans-serif; font-size:14px;'>
+												<tr><td height=40 colspan=2>&nbsp;&nbsp;&nbsp; Dear $fname $lname, </td></tr>
+												
+												<tr><td height=20>&nbsp;&nbsp;&nbsp; Your user name is <b>$username</b>.</td></tr>
+												<tr><td height=20>&nbsp;&nbsp;&nbsp; Your password is <b>$password</b>.</td></tr>
+
+												<tr><td height=20>&nbsp;&nbsp;&nbsp; Remember not to share this password with anyone.</td></tr>
+												<tr><td height=20></td></tr>
+												</br>
+												<tr><td height=20>&nbsp;&nbsp;&nbsp; Note : This is an automatically generated email so please do not reply</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+									<tr>
+										<td>
+										&nbsp;</td>
+									</tr>
+									
+									<tr>
+										<td align='right' style='padding:0px 10px;'>
+										Best regards,<br>
+										COZ CLUB Team</td>
+									</tr>
+									<tr>
+										<td>
+										&nbsp;</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+
+						<tr>
+						<td style='border:1px solid #0194E2; border-bottom:none;'>
+							<img src='".site_url('assets/images/emailbtm.jpg')."'>
+						</td>
+						</tr>
+					
+					</table>";
+
+		//echo $message;
+		//exit();
+		
+		$config = array(
+				'mailtype' => 'html',
+				'charset' => 'utf-8',
+				'smtp_host'=>'localhost',
+				'smtp_port'=>'25',
+				'wordwrap' => TRUE
+			);
+
+
+			$this->load->library('email',$config);
+			$this->email->from($from);
+			$this->email->to($address); 
+			$this->email->subject($subject);
+			$this->email->message($message);    
+
+			if($this->email->send())
+			{
+				echo '';
+			} 
+			else
+			{
+				
+			}
+		}
+	}
+
+	function getUserData($u)
+	{
+		$data = array();
+		$Q = $this->db->select('* from users_front where username="'.$u.'"');
+		$Q =  $this->db->get();
+
+		if ($Q->num_rows() > 0)
+		{
+			foreach ($Q->result_array() as $row)
+			{
+				$data[] = $row;
+			}
+		}
+
+		$Q->free_result();  
+		
+		return $data; 
+	}
+
+	function get_university_UserData($u)
+	{
+		$data = array();
+		$Q = $this->db->select('* from tbl_university_registration where username="'.$u.'"');
+		$Q =  $this->db->get();
+
+		if ($Q->num_rows() > 0)
+		{
+			foreach ($Q->result_array() as $row)
+			{
+				$data[] = $row;
+			}
+		}
+
+		$Q->free_result();  
+		
+		return $data; 
+	}
+
+	public function hash ($string)
+	{
+		return hash('sha512', $string . config_item('encryption_key'));
+	}
+
+	function getautologinDatabyid($id)
+	{
+	  $data = array();
+	  $Q = $this->db->query('SELECT * FROM tbl_registration where userid="'.$id.'"');
+
+	  if ($Q->num_rows() > 0)
+	  {
+	   $data = $Q->row_array();
+	  }
+	  $Q->free_result();  
+	  return $data; 
+    }
+
+	function verifyUser($u,$pw)
+	{
+		    $this->db->select('id,username,activated');
+			$query = $this->db->get('users_front');
+			$this->db->where('username',($u));
+			$this->db->where('password',$pw);
+			//$this->db->where('status', 1);
+			$this->db->limit(1);
+			$Q1 = $this->db->get('users_front');
+
+			if ($Q1->num_rows() > 0)
+			{
+				$row = $Q1->row_array();
+			    $status = $row['activated'];
+
+				if($status==1)
+				 {
+					$data = array(
+									'fusername' => $row["username"],
+									'fuserid' => $row["id"],
+									'frontloggedin' => TRUE,
+						            'fname' => $row["firstname"],
+							        'lname' => $row["lastname"]
+								);
+					$this->session->set_userdata($data);
+				 }
+				 else
+				 {
+					 $this->session->set_userdata('fuserid', '0');
+					 $this->session->set_flashdata('infomsg', 'You have not verified your email address yet. <a href="javascript:void(0);" onclick="verifyshow();">Click Here</a> to send verification link.');
+				 }
+			}
+			else
+			{ 
+				
+				$this->session->set_userdata('fuserid', '0');					
+				$this->session->set_flashdata('loginerror', 'Your attempt to enter was not successful. Please try again.');
+			}
+	}
+
+	function verifyUserpopup($u,$pw)
+	{
+		    $this->db->select('id,username,activated');
+			$query = $this->db->get('users_front');
+			$this->db->where('username',($u));
+			$this->db->where('password',$pw);
+			//$this->db->where('status', 1);
+			$this->db->limit(1);
+			$Q1 = $this->db->get('users_front');
+
+			if ($Q1->num_rows() > 0)
+			{
+				$row = $Q1->row_array();
+			    $status = $row['activated'];
+
+				if($status==1)
+				 {
+					$data = array(
+									'fusername' => $row["username"],
+									'fuserid' => $row["id"],
+									'frontloggedin' => TRUE,
+						            'fname' => $row["firstname"],
+							        'lname' => $row["lastname"]
+								);
+					$this->session->set_userdata($data);
+					return 2;
+				 }
+				 else
+				 {
+					 $this->session->set_userdata('fuserid', '0');
+					 return 0;
+				 }
+			}
+			else
+			{ 
+				
+				$this->session->set_userdata('fuserid', '0');					
+				return 1;
+			}
+	}
+
+	function verifyUserName($u)
+	{
+		$Q = $this->db->query('SELECT * FROM tbl_user where username="'.$u.'"');
+		if ($Q->num_rows() > 0){
+			return "true";
+		} 
+		else 
+		{
+			return "false";
+		}		
+	}
+
+	function passwordmail($u)
+	{         
+		$user= $this->getUserData($u);
+
+		
+		if(count($user)>0)
+		{
+			$fname=ucfirst($user[0]["fname"]);
+			$lname=ucfirst($user[0]["lname"]);
+			$username = $user[0]['email'];
+			$address = $user[0]['email'];
+			$RegistrationsId=$user[0]['id'];
+
+			$userid= md5($RegistrationsId);
+
+			$from = $this->config->item('fromemailid');
+
+			$subject = "Account Information.";
+			$message = "<table cellpadding='0' cellspacing='0' width='600px'>
+						<tr>
+							<td>
+								<img src='".site_url('assets/images/emailtop.jpg')."'>
+							</td>
+						</tr>
+						<tr>
+							<td style='border-left:1px solid #535353; border-right:1px solid #535353; min-height:500px;'>
+								<table cellpadding='0' cellspacing='0' border=0 width='598px' align='center' style= 'font-family:Arial, Helvetica, sans-serif; font-size:14px;'>
+									<tr align=left>
+										<td>
+											<table cellpadding='0' cellspacing='0' border=0 width='598px' style= 'font-family:Arial, Helvetica, sans-serif; font-size:14px;'>
+												<tr><td height=40 colspan=2>&nbsp;&nbsp;&nbsp; Dear $fname $lname, </td></tr>
+												
+												<tr><td height=20>&nbsp;&nbsp;&nbsp; Your Username is <b>$username</b>.</td></tr>
+										<tr>
+											<td style='padding:0px 20px 10px;'>
+												<span>Please click on the following link to change your password</span><br/>
+												
+											</td>
+										</tr>
+										  <tr><td style=' padding:0px 20px;'><span style='font-size:13px;'><a href='".site_url('user/mailchangepassword')."/".$userid."' target='_blank'>".site_url('user/mailchangepassword')."/".$userid."</a></span></td></tr>
+										<tr>
+												<td>
+												&nbsp;</td>
+										</tr>
+										
+										<tr>
+											<td style=' padding:0px 20px;'> Note : This is an automatically generated email so please do not reply </td>
+										</tr>
+											</table>
+										</td>
+									</tr>
+									<tr>
+										<td>
+										&nbsp;</td>
+									</tr>
+									<tr>
+										<td align='left' style='padding:0px 20px; font-size:15px;'>
+										Best regards,<br>
+										COZ CLUB Team.</td>
+									</tr>
+									<tr><td>&nbsp;</td></tr>
+								</table>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<img src='".site_url('assets/images/emailbtm.jpg')."'>
+							</td>
+						</tr>
+					</table>";
+
+
+			$config = array(
+				'mailtype' => 'html',
+				'charset' => 'utf-8',
+				'smtp_host'=>'localhost',
+				'smtp_port'=>'25',
+				'wordwrap' => TRUE
+			);
+
+
+			$this->load->library('email',$config);
+			$this->email->from($from,'Campus For Sure');
+			$this->email->to($address); 
+			$this->email->subject($subject);
+			$this->email->message($message);    
+
+			//echo $message;
+			//exit();
+
+			if($this->email->send())
+			{
+				echo '';
+			} 
+			else
+			{
+				//  show_error($this->email->print_debugger());
+				
+			}
+		}
+	}
+
+
+	function getProfileData()
+	{
+		$data = array();
+		$Q = $this->db->query('SELECT * FROM tbl_registration where userid="'.$this->session->userdata('fuserid').'"');
+
+		if ($Q->num_rows() > 0)
+		{
+			foreach ($Q->result_array() as $row)
+			{
+				$data[] = $row;
+			}
+		}
+		$Q->free_result();  
+		return $data; 
+	}
+
+	function getAllOrdersCount()
+	{
+		$Q = $this->db->select(' * FROM tbl_order where userid="'.$this->session->userdata('fuserid').'" order by id desc');
+		$Q =  $this->db->get();
+		return $Q->num_rows(); 
+	}
+
+
+	function getAllOrders($limit, $start)
+	{
+		$data = array();
+		
+		$Q = $this->db->select(' * FROM tbl_order where userid="'.$this->session->userdata('fuserid').'" order by id desc');
+		$Q = $this->db->limit($limit, $start);
+		$Q =  $this->db->get();
+		if ($Q->num_rows() > 0)
+		{
+			foreach ($Q->result_array() as $row)
+			{
+				$data[] = $row;
+			}
+		}
+		$Q->free_result();  
+		return $data; 
+	}
+
+
+	public function loggedin ()
+	{
+		return (bool) $this->session->userdata('frontloggedin');
+
+	}
+
+	public function logout ()
+	{	
+		$this->session->sess_destroy();
+	}
+
+	public function removecomparelist ($fuserid)
+	{	
+		$this->db->where('userid', $fuserid);
+		$this->db->delete('tbl_compare');
+	}
+
+
+	function getUserDatabyid1($userid)
+	{
+		
+		$data = array();
+		$Q = $this->db->query('SELECT * FROM tbl_registration where md5(userid)="'.$userid.'"');
+
+		if ($Q->num_rows() > 0)
+		{
+			$data = $Q->row_array();
+		}
+		$Q->free_result();  
+		return $data; 
+	}
+
+	function emailupdatepassword($id) 
+	{    
+		
+		$password=$_POST['password'];
+		$data = array( 
+				'password' => $this->hash($password),
+					  );
+
+		$this->db->where('md5(id)', $id);
+		$this->db->update('tbl_user',$data);
+
+		$this->db->where('md5(userid)', $id);
+		$this->db->update('tbl_registration',$data); 
+
+						
+	}
+
+	function confirmationemail($u,$password)
+	 {   
+		  $user= $this->getUserData($u);
+		  $pass=$password;
+		  $fname=ucfirst($user[0]["fname"]);
+		  $lname=ucfirst($user[0]["lname"]);
+          $address = $u;
+		  $from = $this->config->item('fromemailid');
+
+			
+			$subject = "Suggestions.";
+			$message = "<table cellpadding='0' cellspacing='0' width='600px'>
+						<tr>
+							<td>
+								<img src='".site_url('assets/images/emailtop.jpg')."'>
+							</td>
+						</tr>
+						<tr>
+							<td style='border-left:1px solid #535353; border-right:1px solid #535353; min-height:500px;'>
+								<table cellpadding='0' cellspacing='0' border=0 width='598px' align='center' style= 'font-family:Arial, Helvetica, sans-serif; font-size:14px;'>
+									<tr align=left>
+										<td>
+											<table cellpadding='0' cellspacing='0' border=0 width='598px' style= 'font-family:Arial, Helvetica, sans-serif; font-size:14px;'>
+											</br></br>
+											
+											<tr><td height=40 colspan=2>&nbsp;&nbsp;&nbsp; Dear $fname $lname, </td></tr>
+												
+                                           <tr>
+											<td style='padding:0px 20px 10px;'>
+												<span><b>Your Password has been changed Sucessfully.</b></span><br/>
+											</td>
+										  </tr>
+										  <tr><td height=20>&nbsp;&nbsp;&nbsp; Your New password is: <b>$pass</b>.</td></tr>
+												
+											</table>
+										</td>
+									</tr>
+									<tr>
+										<td>
+										&nbsp;</td>
+									</tr>
+									<tr>
+										
+									</tr>
+								</table>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<img src='".site_url('assets/images/emailbtm.jpg')."'>
+							</td>
+						</tr>
+					</table>";
+
+
+			$config = array(
+				'mailtype' => 'html',
+				'charset' => 'utf-8',
+				'smtp_host'=>'localhost',
+				'smtp_port'=>'25',
+				'wordwrap' => TRUE
+			);
+
+
+			$this->load->library('email',$config);
+			$this->email->from($from,'Campus For Sure');
+			$this->email->to($address); 
+			$this->email->subject($subject);
+			$this->email->message($message);    
+
+			//echo $message;
+			//exit();
+
+			if($this->email->send())
+			{
+				echo '';
+			} 
+			else
+			{
+				//  show_error($this->email->print_debugger());
+				
+			}
+	 }
+
+	function updateemailverifyflag($userid) 
+	{  
+		//$currentdate=date("Y-m-d H:i:s");
+
+		$datainsert = array(
+				'activated' => 1
+				);
+		$this->db->where('md5(id)', $userid);
+		$this->db->update('users_front', $datainsert);
+	}
+
+	function GetVerifyUserData($userid)
+	{
+		//echo $RegistrationsId;
+		//exit();
+		$data = array();
+		$Q = $this->db->query('SELECT * FROM tbl_registration where md5(userid)="'.$userid.'"');
+
+		if ($Q->num_rows() > 0)
+		{
+			$data = $Q->row_array();
+		} 
+		$Q->free_result();  
+		return $data; 
+	}
+
+	function getautologinemailDatabyid($userid)
+	{
+		
+		$data = array();
+		$Q = $this->db->query('SELECT * FROM users_front where md5(id)="'.$userid.'"');
+
+		if ($Q->num_rows() > 0)
+		{
+			$data = $Q->row_array();
+		}
+		$Q->free_result();  
+		return $data; 
+	}
+
+	function checkvalidateusername($email)
+	{
+		$data = array();
+		$Q = $this->db->query('SELECT email FROM tbl_registration where username="'.$email.'"');
+		if ($Q->num_rows() > 0)
+		{
+			return "false"; 
+		} 
+		else
+		{
+			return "true"; 
+		}
+	}
+
+	function checkvalidateusernamebyemail($email)
+	{
+		$data = array();
+		$Q = $this->db->query('SELECT username FROM users_front where username="'.$email.'"');
+		if ($Q->num_rows() > 0)
+		{
+			return false; 
+		} 
+		else
+		{
+			return true; 
+		}
+	}
+
+	function getusertype()
+	{
+		$data = array();
+		$Q = $this->db->select('* from tbl_role order by sortorder asc');
+		$Q =  $this->db->get();
+
+		if ($Q->num_rows() > 0)
+		{
+			foreach ($Q->result_array() as $row)
+			{
+				$data[] = $row;
+			}
+		}
+
+		$Q->free_result();  
+		
+		return $data; 
+	}
+
+	function getautologinregistrationDatabyid($userid)
+	{
+		
+		$data = array();
+		$Q = $this->db->query('SELECT * FROM tbl_registration where userid="'.$userid.'"');
+
+		if ($Q->num_rows() > 0)
+		{
+			$data = $Q->row_array();
+		}
+		$Q->free_result();  
+		return $data; 
+	}
+
+
+	function GetUserloginData($userid)
+	{
+		//echo $RegistrationsId;
+		//exit();
+		$data = array();
+		$Q = $this->db->query('SELECT * FROM tbl_user where md5(id)="'.$userid.'"');
+
+		if ($Q->num_rows() > 0)
+		{
+			$data = $Q->row_array();
+		} 
+		$Q->free_result();  
+		return $data; 
+	}
+
+	function checkEmailExists()
+    {
+
+        $Q=$this->db->query('select id from users_front where username="'.$_POST['verifyemail'].'"');
+        if($Q->num_rows()>0)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+
+    }
+
+	function checkEmailActive()
+    {
+        $Q=$this->db->query('select id from users_front where username="'.$_POST['verifyemail'].'" and activated=1');
+        if($Q->num_rows()>0)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+	function verifyUseremail() {
+
+		$u=$_POST['txtforgotUsername'];
+
+        $this->db->select('id,username,activated');
+        $this->db->from('users_front');
+        $this->db->where('username',$_POST['txtforgotUsername']);
+        $this->db->limit(1);
+        $Q1 = $this->db->get();
+        if ($Q1->num_rows() > 0)
+        {
+            $row = $Q1->row_array();
+            $emailstatus = $row['activated'];
+            if ($emailstatus == '1')
+            {
+				return 1;
+            }
+            else if ($emailstatus == '0')
+            {
+				return 2;
+			}
+        }
+        else
+        {
+		  return 3;
+        }
+    }
+
+	function verifyloginUseremail() {
+
+		$u=$_POST['username'];
+
+        $this->db->select('id,username,activated');
+        $this->db->from('users_front');
+        $this->db->where('username',$_POST['username']);
+        $this->db->limit(1);
+        $Q1 = $this->db->get();
+        if ($Q1->num_rows() > 0)
+        {
+            $row = $Q1->row_array();
+            $emailstatus = $row['activated'];
+            if ($emailstatus == '1')
+            {
+				return 1;
+            }
+            else if ($emailstatus == '0')
+            {
+				return 2;
+			}
+        }
+        else
+        {
+		  return 3;
+        }
+    }
+
+	function EditforgotPassword()
+    {
+		$Q = $this->db->query('SELECT id from users_front where md5(id)="' .$_POST['uuid']. '"');
+        if ($Q->num_rows() > 0)
+        {
+            foreach ($Q->result_array() as $row)
+            {
+                $userid = $row['id'];
+            }
+        }
+
+        $Q->free_result();
+        $this->db->where('id',$userid);
+        $this->db->update('users_front',array('password'=>$this->hash($_POST['password'])));
+    }
+
+	function getcountrydata($id)
+	{
+	  $data = array();
+	  $Q = $this->db->query('SELECT name FROM countries where id="'.$id.'"');
+
+	  if ($Q->num_rows() > 0)
+	  {
+	   $data = $Q->row_array();
+	  }
+	  $Q->free_result();  
+	  return $data; 
+    }
+
+	function getstatedata($id)
+	{
+	  $data = array();
+	  $Q = $this->db->query('SELECT * FROM states where id="'.$id.'"');
+
+	  if ($Q->num_rows() > 0)
+	  {
+	   $data = $Q->row_array();
+	  }
+	  $Q->free_result();  
+	  return $data; 
+    }
+
+	function getcitydata($id)
+	{
+	  $data = array();
+	  $Q = $this->db->query('SELECT * FROM cities where id="'.$id.'"');
+
+	  if ($Q->num_rows() > 0)
+	  {
+	   $data = $Q->row_array();
+	  }
+	  $Q->free_result();  
+	  return $data; 
+    }
+
+	public function loginFbMap() {
+
+		$u=$_POST['username'];
+		$pw=$_POST['password'];
+
+        $this->db->select('*');
+        $this->db->from('users_front');
+        $this->db->where('username',$_POST['username']);
+        $this->db->where('password', $this->hash($_POST['password']));
+        $this->db->limit(1);
+	//	echo $this->db->last_query();die;
+        $Q1 = $this->db->get();
+		//echo $this->db->last_query();die;
+        if ($Q1->num_rows() > 0)
+        {
+            $row = $Q1->row_array();
+            $status = $row['activated'];
+
+            if ($status == '0')
+            {
+				$this->db->where('id', $row['id']);
+				$this->db->update('users_front',array('activated'=>'1'));
+
+				$this->db->where('id', $row['id']);
+				$this->db->update('users_front',array('fbuserid'=>$_POST['fbuserid_login']));
+			}
+			else
+			{
+				$this->db->where('id', $row['id']);
+				$this->db->update('users_front',array('fbuserid'=>$_POST['fbuserid_login']));
+			}
+
+			$data = array(
+							'fusername' => $row["username"],
+							'fuserid' => $row["id"],
+							'frontloggedin' => TRUE,
+							'userrole' => $row["roleid"],
+				            'fname' => $row["fname"],
+							'lname' => $row["lname"]
+						);
+			$this->session->set_userdata($data);
+
+          $this->session->set_flashdata('infomsg', 'Your facebook account successfully map with Cycling City');
+		  redirect('user/register_link/'.$_POST['fbuserid_login'].'','refresh');
+
+        }
+        else
+        {
+          $this->session->set_flashdata('loginerror', 'Incorrect E-mail/Password combination.');
+		  redirect('user/register_link/'.$_POST['fbuserid_login'].'','refresh');
+        }
+    }
+}?>

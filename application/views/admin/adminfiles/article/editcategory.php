@@ -1,0 +1,28 @@
+<div class="row-fluid">
+
+    <div class="box ">
+        <div class="box-header with-border"> Edit Category </div>
+        <div class="box-body with-border">
+		    <form method="post" enctype="multipart/form-data" action="<?php echo site_url('index.php/admins/article/editcate');?>" >
+
+            <!-- text input -->
+
+            <div class="form-group ">
+                <label>Category Name</label>
+                <input type="text" class="form-control" name="cate_name" value="<?php echo $result['cate_name'] ?>" required/>
+            </div>
+
+            <div class="form-group">
+                <label>Category Description</label>
+				<textarea class="form-control" name="cate_desc" ><?php echo $result['cate_desc'] ?></textarea>
+            </div>
+
+            <div class="">
+                <input type="hidden" name="editid"  value="<?php echo $result['cate_id'] ?>"/>
+                <input type="submit" class="btn btn-group btn-primary"  value="Update" />
+				<a href="<?php echo site_url('admins/article/category');?>" class="btn btn-group btn-primary">Cancel</a>
+            </div>
+            <?php form_close(); ?>
+        </div>
+    </div>
+</div>

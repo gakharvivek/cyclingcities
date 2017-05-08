@@ -1,0 +1,53 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /cyclingcitynew
+
+#Removes access to the system folder by users.
+#Additionally this will allow you to create a System.php controller,
+#previously this would not have been possible.
+#‘system’ can be replaced if you have renamed your system folder.
+RewriteCond %{REQUEST_URI} ^system.*
+RewriteRule ^(.*)$ /index.php/$1 [L]
+
+#Checks to see if the user is attempting to access a valid file,
+#such as an image or css document, if this isn’t true it sends the
+#request to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+#This last condition enables access to the images and css folders, and the robots.txt file
+RewriteCond $1 !^(index\.php|images|robots\.txt|css)
+RewriteRule ^(.*)$ index.php/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+ErrorDocument 404 /index.php
+</IfModule>
+
+#Block directory listing
+Options +FollowSymLinks -Indexes
+
+#Block URLS with base64 encoding
+RewriteCond %{QUERY_STRING} (&lt;|%3C)([^s]*s)+cript.*(&gt;|%3E) [NC,OR]
+
+#Block scripts that try to change global variables
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+
+#Block SQL injections
+RewriteCond %{query_string} concat.*\( [NC,OR]
+RewriteCond %{query_string} union.*select.*\([NC,OR]
+RewriteCond %{query_string} union.*all.*select [NC]
+RewriteRule ^(.*)$ index.php [F,L]
+
+#Block well-known hackers' utilities
+SetEnvIf user-agent "libwww-perl" stayout=1
+SetEnvIf user-agent "Wget" stayout=1
+deny from env=stayout
+
+#Block access to sensitive files wp-config.php, .htaccess, readme.html and ru_RU.po, etc.
+
+
+<Files .htaccess>
+ order allow,deny
+ deny from all
+</Files>

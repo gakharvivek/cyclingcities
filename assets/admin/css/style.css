@@ -1,0 +1,40 @@
+.warning {
+	background:url("../../assets/images/errors.png") no-repeat 7px 6px #ffffcc;
+	border: 1px solid #fecc03;
+    border-radius: 5px 5px 5px 5px;
+    color: #3C5A01;
+    margin:10px 10px 1px 10px;
+    padding: 12px 10px 12px 51px !important;
+    text-align: left;
+	margin-bottom:10px;
+}
+.success, .pansucess {
+	background: url("../../assets/images/accept.png") no-repeat scroll 7px 6px #EFFFB9;
+    border: 1px solid #99C600;
+    border-radius: 5px 5px 5px 5px;
+    color: #3C5A01;
+    margin:10px 14px 1px 14px;
+    padding: 10px 0px 10px 60px !important;
+    text-align: left;
+	margin-bottom:10px;
+}
+.failure {
+	background: url("../../assets/images/exclamation.png") no-repeat scroll 15px 16px  #FCCAC2;
+	border: 1px solid #eb5339;
+    border-radius: 5px 5px 5px 5px;
+    color: #3C5A01;
+    margin:10px 10px 1px 10px;
+    padding: 10px 0px 10px 60px !important;
+    text-align: left;
+	margin-bottom:10px;
+}
+.information {
+	background:url("../../assets/images/information.png") no-repeat 7px 6px #D0E4F4;
+	border: 1px solid #418acc;
+    border-radius: 5px 5px 5px 5px;
+    color: #3C5A01;
+     margin:10px 10px 1px 10px;
+    padding: 10px 0px 10px 60px !important;
+    text-align: left;
+	margin-bottom:10px;
+}
